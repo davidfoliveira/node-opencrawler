@@ -11,6 +11,7 @@
   "dependencies": {
     "config": "^2.0.1",
     "log": "^1.4.0",
+    "request-lite": "^2.40.1",
     "sqlite3": "file:deps/node-sqlite3"
   }
 }
