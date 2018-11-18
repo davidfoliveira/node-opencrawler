@@ -1,0 +1,9 @@
+{
+  "retrieveItems": "sqlite3",
+  // "modules": {
+  //   "sqlite3": {
+  //     "file": "/tmp/crawler.sqlite3"
+  //   }
+  // }
+  "loopInterval": 5000
+}
