@@ -5,5 +5,10 @@
   //     "file": "/tmp/crawler.sqlite3"
   //   }
   // }
-  "loopInterval": 5000
+  "loopInterval": 5000,
+  "followDomains": [
+    {
+      "domain": "ticketline.pt"
+    }
+  ]
 }

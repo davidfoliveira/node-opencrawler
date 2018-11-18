@@ -19,7 +19,7 @@ class SQLite3 {
 
     // Check if the tables exist and create them otherwise
     if (!await this._structureExists()) {
-      console.log("Structure says NO");
+      console.debug("Structure says NO");
       await this._createStructure();
     }
   }
@@ -29,7 +29,7 @@ class SQLite3 {
    * Crawler handler for retrieving items from the DB
    */
   async retrieveItems() {
-    console.log("RETRIEVEING TAKSSK");
+    console.debug("RETRIEVEING TAKSSK");
     const lastVisit = util.now() - util.relativeTime('1h');
     return this._queryItems("SELECT "+ROWFIELDS.join(',')+",_data FROM Items WHERE LastVisit < ?", lastVisit);
   }
@@ -37,8 +37,15 @@ class SQLite3 {
   /*
    * Crawler handler for storing items in the DB
    */
-  async storeItems() {
-    console.log("STORING TAKSSK");
+  async storeItems(items) {
+    const storeOp = "INSERT INTO Items ("+ROWFIELDS.join(",")+",_data) SELECT ?,?,?,?,? WHERE NOT EXISTS(SELECT 1 FROM Items WHERE URL=?)";
+    console.debug("STORING TAKSSK: ", items);
+    const storePromises = items.map(item => {
+      const args = SQLite3._itemToRow(item);
+      args.push(item.URL);
+      return this._op(storeOp, args);
+    });
+    return Promise.all(storePromises);
   }
 
 
@@ -62,8 +69,8 @@ class SQLite3 {
    */
   _query(query, parameters) {
     const self = this;
-    console.log("Q: "+query+" "+JSON.stringify(parameters||[]));
-    return util.promisify((callback) => self.db.all(query, parameters || [], callback));
+    console.debug("Q: "+query+" "+JSON.stringify(parameters||[]));
+    return util.promisify(callback => self.db.all(query, parameters || [], callback));
   }
 
   /*
@@ -71,30 +78,42 @@ class SQLite3 {
    */
   _op(query, parameters) {
     const self = this;
-    console.log("O: "+query+" "+JSON.stringify(parameters||[]));
-    return util.promisify((callback) => self.db.run(query, parameters, callback));
+    console.debug("O: "+query+" "+JSON.stringify(parameters||[]));
+    return util.promisify(callback => self.db.run(query, parameters, callback));
   }
 
   /*
    * Perform a query and convert the results into items.
    */
   async _queryItems(query, ...parameters) {
-    return SQLite3._resultsToItems(await this._query(query, parameters));
+    return SQLite3._rowsToItems(await this._query(query, parameters));
   }
 
   /*
    * Convert query results into items.
    */
-  static _resultsToItems(results) {
+  static _rowsToItems(rows) {
     const items = [];
-    return results.map((row) => {
-      const item = JSON.parse(row._data || '{}');
-      ROWFIELDS.forEach((field) => {
-        item[field] = row[field];
-      });
-      return item;
+    return rows.map(row => SQLite3._rowToItem(row));
+  }
+
+  static _rowToItem(row) {
+    const item = JSON.parse(row._data || '{}');
+    ROWFIELDS.forEach(field => {
+      item[field] = row[field];
     });
+    return item;
+  }
+
+  static _itemToRow(item) {
+    const row = ROWFIELDS.map(field => item[field]);
+    const _data = Object.assign({}, item);
+    ROWFIELDS.forEach(field => {
+      delete _data[field];
+    });
+    row.push(_data);
+    return row;
   }
 }
 
-exports.start = (config) => util.createModuleStarter(SQLite3, config);
+exports.start = config => util.createModuleStarter(SQLite3, config);

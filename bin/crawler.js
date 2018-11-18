@@ -4,6 +4,5 @@ const
 
 
 (async () => {
-  const c = await crawler.start(config);
-  console.log(c);
+  await crawler.start(config);
 })();

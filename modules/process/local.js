@@ -13,4 +13,4 @@ class Local {
 
 }
 
-exports.start = (config) => util.createModuleStarter(Local, config);
+exports.start = config => util.createModuleStarter(Local, config);
