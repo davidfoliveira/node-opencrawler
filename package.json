@@ -13,5 +13,10 @@
     "log": "^1.4.0",
     "request-lite": "^2.40.1",
     "sqlite3": "file:deps/node-sqlite3"
+  },
+  "devDependencies": {
+    "eslint": "^5.9.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0"
   }
 }

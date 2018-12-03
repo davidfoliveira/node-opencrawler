@@ -1,0 +1,18 @@
+{
+    "extends": "airbnb-base",
+    "overrides": [
+      {
+        "files": ["*.js"],
+        "rules": {
+          "no-multi-spaces": "off",
+          "key-spacing": "off",
+          "no-underscore-dangle": "off",
+          "array-callback-return": "off",
+          "one-var": "off",
+          "no-param-reassign": "off",
+          "no-plusplus": "off",
+          "no-continue": "off"
+        }
+      }
+    ]
+}
