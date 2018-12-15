@@ -4,15 +4,19 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "node_modules/.bin/eslint lib/ bin/"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "config": "^2.0.1",
+    "htmlparser": "^1.7.7",
     "log": "^1.4.0",
+    "matcher": "^1.1.1",
     "request-lite": "^2.40.1",
-    "sqlite3": "file:deps/node-sqlite3"
+    "sqlite3": "file:deps/node-sqlite3",
+    "zcsel": "^0.2.20"
   },
   "devDependencies": {
     "eslint": "^5.9.0",

@@ -1,7 +1,7 @@
 // All builtin modules
 const MODULES = {
   storage: ['sqlite3'],
-  process: ['local']
+  fetch: ['local']
 };
 
 // Initialize module type structure

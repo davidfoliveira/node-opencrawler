@@ -5,3 +5,9 @@ dep:
 
 clean:
 	rm -rf node_modules
+
+run:
+	NODE_ENV=develop node bin/crawler.js
+
+lint:
+	npm run lint

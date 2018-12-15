@@ -1,0 +1,4 @@
+- Update fetched items (last viewed)
+- Support for crawl delay
+- Support for specifying number of items per second / concurrent
+- Support for scraper
