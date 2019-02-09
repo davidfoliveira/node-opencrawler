@@ -4,6 +4,8 @@ const
 
   ITEM_ROWFIELDS = ['_id', 'Domain', 'URL', 'LastVisit'],
   CONTENT_ROWFIELDS = ['_id', 'Domain', 'URL'],
+  STATIC_DATA_FIELDS = ['FirstFound'],
+  STORE_REMOVE_FIELDS = ['Links', 'Content'],
 
   DEFAULT_CONF = {
     'sqlite3': {
@@ -54,20 +56,57 @@ class SQLite3 {
   /*
    * Crawler handler for retrieving items from the DB
    */
-  async retrieveItems() {
-    const lastVisit = util.now() - util.relativeTime('1h');
-    return this._queryItems('SELECT '+ITEM_ROWFIELDS.join(',')+',_data FROM Item WHERE LastVisit < ?', lastVisit);
+  async retrieveItems(domain, limit) {
+    const
+      lastVisit = util.now() - util.relativeTime('1h'),
+      filters = ['LastVisit < ?'],
+      args = [lastVisit];
+
+    // Filters
+    if (domain) {
+      filters.push('Domain=?');
+      args.push(domain);
+    }
+    const filterStr = filters.join(' AND ');
+    return this._queryItems('SELECT '+ITEM_ROWFIELDS.join(',')+`,_data,_staticData FROM Item WHERE ${filterStr} ORDER BY LastVisit ASC LIMIT ${limit}`, args);
   }
 
   /*
    * Crawler handler for storing items in the DB
    */
-  async storeItems(items) {
-    const storeOp = 'INSERT INTO Item ('+ITEM_ROWFIELDS.join(',')+',_data) SELECT ?,?,?,?,? WHERE NOT EXISTS(SELECT 1 FROM Item WHERE URL=?)';
+  async storeItems(items, overwrite) {
+    items.forEach(item => {
+      if (!item.URL) {
+        throw Error("ITEM WITHOUT URL: "+JSON.stringify(item));
+      }
+    });
+    if (overwrite) {
+      return this._storeItemsOverwrite(items);
+    }
+    return this._storeItemsIgnoreIfExists(items);
+  }
+
+  async _storeItemsIgnoreIfExists(items) {
+    const storeOp = 'INSERT INTO Item ('+ITEM_ROWFIELDS.join(',')+',_data,_staticData) SELECT ?,?,?,?,? WHERE NOT EXISTS(SELECT 1 FROM Item WHERE URL=?)';
     const storePromises = items.map(item => {
-      const args = SQLite3._objectToRow(item, ITEM_ROWFIELDS);
+      const args = SQLite3._objectToRow(item, ITEM_ROWFIELDS, true);
       args.push(item.URL);
       return this._op(storeOp, args);
+    });
+    return Promise.all(storePromises);    
+  }
+
+  async _storeItemsOverwrite(items) {
+    // Build the update operation
+    const
+      insertOp = `INSERT OR IGNORE INTO Item(${ITEM_ROWFIELDS.join(',')},_data) VALUES (?,?,?,?,?)`,
+      updateOp = 'UPDATE Item SET LastVisit=?, _data=? WHERE URL=?',
+      storePromises = [];
+
+    items.forEach(item => {
+      const args = SQLite3._objectToRow(item, ITEM_ROWFIELDS);
+      storePromises.push(this._op(insertOp, args));
+      storePromises.push(this._op(updateOp, [item.LastVisit, args[args.length-1], item.URL]));
     });
     return Promise.all(storePromises);
   }
@@ -98,8 +137,8 @@ class SQLite3 {
    *
    */
   async _createStructure() {
-    await this._op('CREATE TABLE Item (_id INTEGER PRIMARY KEY AUTOINCREMENT, Domain string, URL string, LastVisit INTEGER DEFAULT 0, _data string)');
-    await this._op('CREATE TABLE Content (_id INTEGER PRIMARY KEY AUTOINCREMENT, Domain string NOT NULL, URL string NOT NULL, _data TEXT)');
+    await this._op('CREATE TABLE Item (_id INTEGER PRIMARY KEY AUTOINCREMENT, Domain string, URL string UNIQUE, LastVisit INTEGER DEFAULT 0, _staticData string, _data string)');
+    await this._op('CREATE TABLE Content (_id INTEGER PRIMARY KEY AUTOINCREMENT, Domain string NOT NULL, URL string NOT NULL, _staticData string, _data TEXT)');
     await this._op('CREATE TABLE Config (Key string PRIMARY KEY, Value string)');
   }
 
@@ -124,7 +163,7 @@ class SQLite3 {
   /*
    * Perform a query and convert the results into items.
    */
-  async _queryItems(query, ...parameters) {
+  async _queryItems(query, parameters) {
     return SQLite3._rowsToObjects(await this._query(query, parameters), ITEM_ROWFIELDS);
   }
 
@@ -144,13 +183,21 @@ class SQLite3 {
     return item;
   }
 
-  static _objectToRow(item, fields) {
+  static _objectToRow(item, fields, includeStaticData) {
     const row = fields.map(field => item[field]);
     const _data = Object.assign({}, item);
-    fields.forEach(field => {
+    fields.concat(STORE_REMOVE_FIELDS).concat(STATIC_DATA_FIELDS).forEach(field => {
       delete _data[field];
     });
     row.push(JSON.stringify(_data));
+
+    if (includeStaticData) {
+      const _staticData = {};
+      STATIC_DATA_FIELDS.forEach(field => {
+        _staticData[field] = item[field];
+      });
+      row.push(JSON.stringify(_staticData));
+    }
     return row;
   }
 

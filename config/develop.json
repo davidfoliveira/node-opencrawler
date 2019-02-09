@@ -10,5 +10,8 @@
     {
       "domain": "24.sapo.pt"
     }
-  ]
+  ],
+  "domainCycles": true,
+  "concurrentCycles": 10,
+  "cycleItems": 10
 }

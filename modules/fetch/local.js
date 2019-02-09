@@ -15,9 +15,7 @@ class Local {
   async fetchItems(items, opts) {
     console.log(`FETCH ${items.length} ITEMS`);
     const fetchPromises = items.map(item => fetcher.fetchItem(item, opts));
-    return Promise.all(fetchPromises).then(results => {
-      return results;
-    });
+    return Promise.all(fetchPromises);
   }
 }
 

@@ -1,4 +1,4 @@
-- Update fetched items (last viewed)
+- First/Last found - FirstFound not being changed for the items in result.Links
 - Support for crawl delay
 - Support for specifying number of items per second / concurrent
 - Support for scraper
