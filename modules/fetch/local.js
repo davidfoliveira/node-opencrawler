@@ -12,9 +12,19 @@ class Local {
     console.log("Local fetcher START!!");
   }
 
-  async fetchItems(items, opts) {
+  async fetchItems(items, scrapers, opts) {
+    const
+      fetchPromises = [];
+
     console.log(`FETCH ${items.length} ITEMS`);
-    const fetchPromises = items.map(item => fetcher.fetchItem(item, opts));
+    for (let x = 0; x < items.length; x++) {
+      const
+        item = items[x],
+        scraper = scrapers[x];
+
+      fetchPromises.push(fetcher.fetchItem(item, scraper, opts));
+    }
+
     return Promise.all(fetchPromises);
   }
 }

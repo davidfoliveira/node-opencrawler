@@ -1,4 +1,18 @@
-- First/Last found - FirstFound not being changed for the items in result.Links
-- Support for crawl delay
-- Support for specifying number of items per second / concurrent
-- Support for scraper
+ v - First/Last found - FirstFound not being changed for the items in result.Links
+
+- Support for deepness levels (and max deepness)
+    - Max deepness
+    - Update item if deepness < current
+
+- NextVisit of a found item should be based on custom logic (and deepness)
+- NextVisit of a found item depends on whether it exists already or not and (portentially) its deepness
+    (an item is found in a very deep link [side widget] but later its found in the homepage - it doesn't get prioritised)
+
+
+- Support for concurrency modules
+    - Support for crawl delay
+    - Support for specifying number of items per second / concurrent
+
+- Support for cleaning up after the scrape
+
+- URL replace (general + by domain)

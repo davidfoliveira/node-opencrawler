@@ -1,0 +1,26 @@
+{
+  "retrieveItems": "sqlite3",
+  // "modules": {
+  //   "sqlite3": {
+  //     "file": "/tmp/crawler.sqlite3"
+  //   }
+  // }
+  "loopInterval": 5000,
+  "followDomains": [
+    {
+      "domain": "tf.xeplin.xp",
+      "urlScrapers": [
+        {
+          "pattern": "/artigos/[\\w-]+$",
+          "ignoreParameters": true,
+          "scraper": "xeplin.article"
+        }
+      ]
+    }
+  ],
+  "domainCycles": true,
+  "concurrentCycles": 10,
+  "cycleItems": 10,
+  "maxDeepness": 2,
+  "followNewNow": true
+}
